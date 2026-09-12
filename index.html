@@ -216,6 +216,30 @@
     display: none;
   }
 
+  .logo-size-row {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .logo-size-row label {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .logo-size-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--gold);
+  }
+  .logo-size-row span {
+    font-size: 12px;
+    color: var(--gold);
+    min-width: 46px;
+    text-align: right;
+  }
+
   button.generate {
     width: 100%;
     background: var(--gold);
@@ -378,13 +402,18 @@
         </div>
         <div class="logo-upload-text">
           <div class="fname" id="logoFileName">No file selected</div>
-          <div class="fhint">PNG or JPG recommended, square, ~200×200px</div>
+          <div class="fhint">Square marks and wide wordmarks both work — the signature scales to fit whatever you upload</div>
         </div>
         <label class="btn-file">
           Upload
           <input type="file" id="logoInput" accept="image/png, image/jpeg, image/gif">
         </label>
         <span class="remove-logo" id="removeLogo">Remove</span>
+      </div>
+      <div class="logo-size-row" id="logoSizeRow">
+        <label style="margin-bottom: 0;">Logo width in signature</label>
+        <input type="range" id="logoWidth" min="40" max="320" value="160">
+        <span id="logoWidthVal">160px</span>
       </div>
     </div>
 
@@ -419,7 +448,7 @@
       </li>
     </ol>
     <div class="note">
-      <b>Note:</b> the logo is embedded directly in the signature (no external hosting needed). Gmail and Apple Mail render this reliably. Desktop Outlook occasionally strips embedded images on paste — if that happens, re-save the logo as a compressed PNG under 100KB and try again.
+      <b>Note:</b> the logo is embedded directly in the signature (no external hosting needed), and auto-sizes to your logo's real proportions — drag the <b>Logo width</b> slider to make it bigger or smaller, the height adjusts to match automatically. Gmail and Apple Mail render this reliably. Desktop Outlook occasionally strips embedded images on paste — if that happens, re-save the logo as a compressed PNG under 100KB and try again.
     </div>
   </div>
 
@@ -438,11 +467,15 @@
   };
 
   let logoDataUrl = null;
+  let logoAspectRatio = 1; // width / height, recalculated per upload
 
   const logoInput = document.getElementById('logoInput');
   const logoPreview = document.getElementById('logoPreview');
   const logoFileName = document.getElementById('logoFileName');
   const removeLogo = document.getElementById('removeLogo');
+  const logoSizeRow = document.getElementById('logoSizeRow');
+  const logoWidthSlider = document.getElementById('logoWidth');
+  const logoWidthVal = document.getElementById('logoWidthVal');
 
   logoInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -453,16 +486,37 @@
       logoPreview.innerHTML = `<img src="${logoDataUrl}" alt="logo">`;
       logoFileName.textContent = file.name;
       removeLogo.style.display = 'inline';
+      logoSizeRow.style.display = 'flex';
+
+      // Read the real dimensions so a wide wordmark doesn't get squashed into a square box
+      const img = new Image();
+      img.onload = () => {
+        logoAspectRatio = img.naturalWidth / img.naturalHeight;
+        // A wide wordmark (e.g. 10:1) reads better narrower and shorter than a square icon —
+        // pick a sensible starting width based on shape rather than one fixed default for everything.
+        let startWidth = 160;
+        if (logoAspectRatio > 4) startWidth = 220;       // wide wordmark
+        else if (logoAspectRatio < 0.6) startWidth = 90;  // tall/vertical mark
+        logoWidthSlider.value = startWidth;
+        logoWidthVal.textContent = startWidth + 'px';
+      };
+      img.src = logoDataUrl;
     };
     reader.readAsDataURL(file);
   });
 
+  logoWidthSlider.addEventListener('input', () => {
+    logoWidthVal.textContent = logoWidthSlider.value + 'px';
+  });
+
   removeLogo.addEventListener('click', () => {
     logoDataUrl = null;
+    logoAspectRatio = 1;
     logoInput.value = '';
     logoPreview.innerHTML = '<span class="placeholder">NO<br>LOGO</span>';
     logoFileName.textContent = 'No file selected';
     removeLogo.style.display = 'none';
+    logoSizeRow.style.display = 'none';
   });
 
   const generateBtn = document.getElementById('generateBtn');
@@ -486,22 +540,69 @@
     const emailLocal = document.getElementById('emailLocal').value.trim();
     const email = emailLocal ? escapeHtml(emailLocal) + '@fifteenconsult.com' : '';
 
-    const logoCell = logoDataUrl
-      ? `<td style="padding-right:20px;vertical-align:top;">
-           <img src="${logoDataUrl}" width="64" height="64" style="display:block;border-radius:4px;object-fit:contain;" alt="${BRAND.company}">
-         </td>`
-      : '';
-
     const emailRow = email
       ? `<tr><td style="padding-top:2px;">
            <a href="mailto:${email}" style="color:#444444;text-decoration:none;">${email}</a>
          </td></tr>`
       : '';
 
+    if (!logoDataUrl) {
+      // No logo — simple single-column layout
+      return `
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td style="border-left:2px solid ${GOLD};padding-left:18px;vertical-align:top;">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td style="font-size:15px;font-weight:bold;color:#1a1a1a;padding-bottom:2px;">${name}</td></tr>
+        <tr><td style="font-size:12px;color:${GOLD};letter-spacing:0.03em;padding-bottom:10px;">${position}</td></tr>
+        <tr><td style="font-size:12px;color:#444444;padding-top:2px;">
+          <a href="tel:+974${mobileDigits}" style="color:#444444;text-decoration:none;">+974 ${mobile}</a>
+        </td></tr>
+        ${emailRow}
+        <tr><td style="font-size:11px;color:#888888;padding-top:10px;">
+          ${BRAND.company} &nbsp;·&nbsp; ${BRAND.address}<br>
+          <a href="${BRAND.websiteUrl}" style="color:#888888;text-decoration:none;">${BRAND.website}</a>
+        </td></tr>
+      </table>
+    </td>
+  </tr>
+</table>`.trim();
+    }
+
+    const logoW = parseInt(logoWidthSlider.value, 10) || 160;
+    const logoH = Math.round(logoW / logoAspectRatio);
+    const isWide = logoAspectRatio >= 2.2; // wordmark-shaped: sits above the name, not beside it
+
+    if (isWide) {
+      return `
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">
+  <tr><td style="padding-bottom:12px;">
+    <img src="${logoDataUrl}" width="${logoW}" height="${logoH}" style="display:block;" alt="${BRAND.company}">
+  </td></tr>
+  <tr><td style="border-left:2px solid ${GOLD};padding-left:18px;vertical-align:top;">
+    <table cellpadding="0" cellspacing="0" border="0">
+      <tr><td style="font-size:15px;font-weight:bold;color:#1a1a1a;padding-bottom:2px;">${name}</td></tr>
+      <tr><td style="font-size:12px;color:${GOLD};letter-spacing:0.03em;padding-bottom:10px;">${position}</td></tr>
+      <tr><td style="font-size:12px;color:#444444;padding-top:2px;">
+        <a href="tel:+974${mobileDigits}" style="color:#444444;text-decoration:none;">+974 ${mobile}</a>
+      </td></tr>
+      ${emailRow}
+      <tr><td style="font-size:11px;color:#888888;padding-top:10px;">
+        ${BRAND.company} &nbsp;·&nbsp; ${BRAND.address}<br>
+        <a href="${BRAND.websiteUrl}" style="color:#888888;text-decoration:none;">${BRAND.website}</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>`.trim();
+    }
+
+    // Square/icon-shaped logo — sits beside the name block, as before
     return `
 <table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">
   <tr>
-    ${logoCell}
+    <td style="padding-right:20px;vertical-align:top;">
+      <img src="${logoDataUrl}" width="${logoW}" height="${logoH}" style="display:block;" alt="${BRAND.company}">
+    </td>
     <td style="border-left:2px solid ${GOLD};padding-left:18px;vertical-align:top;">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr><td style="font-size:15px;font-weight:bold;color:#1a1a1a;padding-bottom:2px;">${name}</td></tr>
