@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FifteenConsult Email Signature Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --card: #111111;
+    --border: #1e1e1e;
+    --border-soft: #1a1a1a;
+    --text: #e8e4d9;
+    --muted: #666;
+    --dim: #444;
+    --faint: #333;
+    --gold: #C8A96E;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', 'Courier New', monospace;
+    line-height: 1.5;
+    padding: 48px 20px 80px;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #111; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 48px; }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 34px;
+    letter-spacing: -0.5px;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 13px;
+    max-width: 440px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 620px) {
+    .grid2 { grid-template-columns: 1fr; }
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  label .req { color: var(--gold); }
+  label .opt { color: var(--faint); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  input[type="text"],
+  input[type="tel"] {
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 12px 14px;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]::placeholder,
+  input[type="tel"]::placeholder { color: var(--faint); }
+
+  input[type="text"]:focus,
+  input[type="tel"]:focus { border-color: var(--gold); }
+
+  .phone-field {
+    display: flex;
+    align-items: center;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .phone-field:focus-within { border-color: var(--gold); }
+  .phone-field .prefix {
+    padding: 12px 10px 12px 14px;
+    color: var(--gold);
+    font-size: 14px;
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .phone-field input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    padding: 12px 14px;
+  }
+  .phone-field input:focus { outline: none; }
+
+  .email-field {
+    display: flex;
+    align-items: center;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .email-field:focus-within { border-color: var(--gold); }
+  .email-field input {
+    border: none;
+    background: transparent;
+    flex: 1;
+    padding: 12px 14px;
+    min-width: 0;
+  }
+  .email-field input:focus { outline: none; }
+  .email-field .suffix {
+    padding: 12px 14px 12px 4px;
+    color: var(--dim);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  /* Logo upload */
+  .logo-upload {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #0a0a0a;
+    border: 1px dashed var(--border);
+    border-radius: 2px;
+    padding: 16px;
+  }
+
+  .logo-preview {
+    width: 56px;
+    height: 56px;
+    border-radius: 2px;
+    background: #050505;
+    border: 1px solid var(--border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .logo-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .logo-preview .placeholder { font-size: 9px; color: var(--faint); text-align: center; letter-spacing: 0.05em; }
+
+  .logo-upload-text { flex: 1; }
+  .logo-upload-text .fname { font-size: 12px; color: var(--text); margin-bottom: 4px; }
+  .logo-upload-text .fhint { font-size: 11px; color: var(--faint); }
+
+  .btn-file {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 8px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-file:hover { background: rgba(200,169,110,0.08); }
+  .btn-file input[type="file"] { display: none; }
+
+  .remove-logo {
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: 12px;
+    display: none;
+  }
+
+  button.generate {
+    width: 100%;
+    background: var(--gold);
+    color: #14110a;
+    border: none;
+    padding: 15px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.15s;
+  }
+  button.generate:hover { opacity: 0.88; }
+  button.generate:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .error-msg {
+    font-size: 12px;
+    color: #C86E6E;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* Preview card */
+  #previewCard { display: none; }
+
+  .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .copy-btn {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    border-radius: 2px;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(200,169,110,0.08); }
+  .copy-btn.copied { background: var(--gold); color: #14110a; }
+
+  .sig-render-box {
+    background: #ffffff;
+    border-radius: 2px;
+    padding: 24px;
+    overflow-x: auto;
+  }
+
+  /* Steps */
+  ol.steps { list-style: none; }
+  ol.steps li {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  ol.steps li:last-child { margin-bottom: 0; }
+  ol.steps .num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #14110a;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  ol.steps b { color: var(--text); font-weight: 500; }
+  ol.steps code {
+    background: #1a1a1a;
+    color: #999;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+
+  .note {
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: #0f0f0f;
+    border-left: 2px solid var(--gold);
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+    border-radius: 2px;
+  }
+  .note b { color: var(--gold); }
+
+  footer {
+    text-align: center;
+    font-size: 10px;
+    color: var(--faint);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <h1>FifteenConsult Signature Generator</h1>
+    <p>Enter your details below, click Generate, then copy and paste into your email settings.</p>
+  </header>
+
+  <!-- FORM CARD -->
+  <div class="card">
+    <div class="eyebrow">Your Details</div>
+
+    <div class="grid2">
+      <div>
+        <label>Full Name <span class="req">*</span></label>
+        <input type="text" id="fullName" placeholder="e.g. Sadick Mumin">
+      </div>
+      <div>
+        <label>Position / Title <span class="req">*</span></label>
+        <input type="text" id="position" placeholder="e.g. Co-founder & CMO">
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <label>Mobile Number <span class="req">*</span></label>
+        <div class="phone-field">
+          <span class="prefix">+974</span>
+          <input type="tel" id="mobile" placeholder="e.g. 3024 4565">
+        </div>
+      </div>
+      <div>
+        <label>Email <span class="opt">(optional)</span></label>
+        <div class="email-field">
+          <input type="text" id="emailLocal" placeholder="e.g. sadick">
+          <span class="suffix">@fifteenconsult.com</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <label>Logo <span class="opt">(optional — upload the FifteenConsult logo, or your own headshot mark)</span></label>
+      <div class="logo-upload">
+        <div class="logo-preview" id="logoPreview">
+          <span class="placeholder">NO<br>LOGO</span>
+        </div>
+        <div class="logo-upload-text">
+          <div class="fname" id="logoFileName">No file selected</div>
+          <div class="fhint">PNG or JPG recommended, square, ~200×200px</div>
+        </div>
+        <label class="btn-file">
+          Upload
+          <input type="file" id="logoInput" accept="image/png, image/jpeg, image/gif">
+        </label>
+        <span class="remove-logo" id="removeLogo">Remove</span>
+      </div>
+    </div>
+
+    <button class="generate" id="generateBtn">Generate My Signature</button>
+    <div class="error-msg" id="errorMsg">Please fill in your name, position, and mobile number.</div>
+  </div>
+
+  <!-- PREVIEW CARD -->
+  <div class="card" id="previewCard">
+    <div class="preview-header">
+      <div class="eyebrow" style="margin-bottom: 0;">Your Signature</div>
+      <button class="copy-btn" id="copyBtn">Copy Signature</button>
+    </div>
+    <div class="sig-render-box" id="sigRenderBox"></div>
+  </div>
+
+  <!-- HOW TO SET UP -->
+  <div class="card">
+    <div class="eyebrow">How To Set Up</div>
+    <ol class="steps">
+      <li>
+        <span class="num">1</span>
+        <span>Fill in your <b>Name</b>, <b>Position</b>, and <b>Mobile</b> (logo and email are optional), then click <b>Generate My Signature</b>.</span>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <span>Click <b>Copy Signature</b> — this copies the fully formatted signature to your clipboard.</span>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <span><b>Gmail:</b> <code>Settings → See all settings → General → Signature → Paste</code><br><b>Outlook:</b> <code>Settings → Mail → Compose and reply → Signature → Paste</code></span>
+      </li>
+    </ol>
+    <div class="note">
+      <b>Note:</b> the logo is embedded directly in the signature (no external hosting needed). Gmail and Apple Mail render this reliably. Desktop Outlook occasionally strips embedded images on paste — if that happens, re-save the logo as a compressed PNG under 100KB and try again.
+    </div>
+  </div>
+
+  <footer>FifteenConsult · Internal Tool</footer>
+
+</div>
+
+<script>
+  const GOLD = '#C8A96E';
+  const BRAND = {
+    company: 'FifteenConsult',
+    website: 'fifteenconsult.com',
+    websiteUrl: 'https://fifteenconsult.com',
+    address: 'Doha, Qatar',
+    tagline: 'Turn Marketing Complexity Into Measurable Growth'
+  };
+
+  let logoDataUrl = null;
+
+  const logoInput = document.getElementById('logoInput');
+  const logoPreview = document.getElementById('logoPreview');
+  const logoFileName = document.getElementById('logoFileName');
+  const removeLogo = document.getElementById('removeLogo');
+
+  logoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      logoDataUrl = ev.target.result;
+      logoPreview.innerHTML = `<img src="${logoDataUrl}" alt="logo">`;
+      logoFileName.textContent = file.name;
+      removeLogo.style.display = 'inline';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  removeLogo.addEventListener('click', () => {
+    logoDataUrl = null;
+    logoInput.value = '';
+    logoPreview.innerHTML = '<span class="placeholder">NO<br>LOGO</span>';
+    logoFileName.textContent = 'No file selected';
+    removeLogo.style.display = 'none';
+  });
+
+  const generateBtn = document.getElementById('generateBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const previewCard = document.getElementById('previewCard');
+  const sigRenderBox = document.getElementById('sigRenderBox');
+  const copyBtn = document.getElementById('copyBtn');
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function buildSignatureHtml() {
+    const name = escapeHtml(document.getElementById('fullName').value.trim());
+    const position = escapeHtml(document.getElementById('position').value.trim());
+    const mobileRaw = document.getElementById('mobile').value.trim();
+    const mobile = escapeHtml(mobileRaw);
+    const mobileDigits = mobileRaw.replace(/\s+/g, '');
+    const emailLocal = document.getElementById('emailLocal').value.trim();
+    const email = emailLocal ? escapeHtml(emailLocal) + '@fifteenconsult.com' : '';
+
+    const logoCell = logoDataUrl
+      ? `<td style="padding-right:20px;vertical-align:top;">
+           <img src="${logoDataUrl}" width="64" height="64" style="display:block;border-radius:4px;object-fit:contain;" alt="${BRAND.company}">
+         </td>`
+      : '';
+
+    const emailRow = email
+      ? `<tr><td style="padding-top:2px;">
+           <a href="mailto:${email}" style="color:#444444;text-decoration:none;">${email}</a>
+         </td></tr>`
+      : '';
+
+    return `
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    ${logoCell}
+    <td style="border-left:2px solid ${GOLD};padding-left:18px;vertical-align:top;">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr><td style="font-size:15px;font-weight:bold;color:#1a1a1a;padding-bottom:2px;">${name}</td></tr>
+        <tr><td style="font-size:12px;color:${GOLD};letter-spacing:0.03em;padding-bottom:10px;">${position}</td></tr>
+        <tr><td style="font-size:12px;color:#444444;padding-top:2px;">
+          <a href="tel:+974${mobileDigits}" style="color:#444444;text-decoration:none;">+974 ${mobile}</a>
+        </td></tr>
+        ${emailRow}
+        <tr><td style="font-size:11px;color:#888888;padding-top:10px;">
+          ${BRAND.company} &nbsp;·&nbsp; ${BRAND.address}<br>
+          <a href="${BRAND.websiteUrl}" style="color:#888888;text-decoration:none;">${BRAND.website}</a>
+        </td></tr>
+      </table>
+    </td>
+  </tr>
+</table>`.trim();
+  }
+
+  generateBtn.addEventListener('click', () => {
+    const name = document.getElementById('fullName').value.trim();
+    const position = document.getElementById('position').value.trim();
+    const mobile = document.getElementById('mobile').value.trim();
+
+    if (!name || !position || !mobile) {
+      errorMsg.style.display = 'block';
+      return;
+    }
+    errorMsg.style.display = 'none';
+
+    const html = buildSignatureHtml();
+    sigRenderBox.innerHTML = html;
+    previewCard.style.display = 'block';
+    previewCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    const html = sigRenderBox.innerHTML;
+    try {
+      const blob = new Blob([html], { type: 'text/html' });
+      const data = [new ClipboardItem({ 'text/html': blob })];
+      await navigator.clipboard.write(data);
+    } catch (err) {
+      // Fallback: select the rendered node and use execCommand
+      const range = document.createRange();
+      range.selectNode(sigRenderBox);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+    }
+    copyBtn.textContent = '✓ Copied!';
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = 'Copy Signature';
+      copyBtn.classList.remove('copied');
+    }, 2000);
+  });
+</script>
+
+</body>
+</html>
